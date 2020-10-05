@@ -4,7 +4,7 @@
 
 import React from 'react'
 
-function Child() {
+function Child({parentValue, setParentValue}) {
   console.log('%c    Child: render start', 'color: MediumSpringGreen')
 
   const [count, setCount] = React.useState(() => {
@@ -36,6 +36,20 @@ function Child() {
   }, [])
 
   React.useEffect(() => {
+    console.log(
+      '%c    Child: Value: {0} useEffect(() => {}, [parentValue])',
+      'color: HotPink',
+      parentValue,
+    )
+    return () => {
+      console.log(
+        '%c    Child: useEffect(() => {}, [parentValue]) cleanup 🧹',
+        'color: HotPink',
+      )
+    }
+  }, [parentValue])
+
+  React.useEffect(() => {
     console.log('%c    Child: useEffect(() => {}, [count])', 'color: HotPink')
     return () => {
       console.log(
@@ -46,7 +60,13 @@ function Child() {
   }, [count])
 
   const element = (
-    <button onClick={() => setCount(previousCount => previousCount + 1)}>
+    <button
+      onClick={() => {
+        setCount(previousCount => previousCount + 1)
+        setParentValue('Pikachu')
+        return
+      }}
+    >
       {count}
     </button>
   )
@@ -64,12 +84,30 @@ function App() {
     return false
   })
 
-  React.useEffect(() => {
-    console.log('%cApp: useEffect(() => {})', 'color: LightCoral')
-    return () => {
-      console.log('%cApp: useEffect(() => {}) cleanup 🧹', 'color: LightCoral')
-    }
+  const [parentValue, setParentValue] = React.useState(() => {
+    console.log('%cApp: useState(() => pichu)', 'color: tomato')
+    return 'pichu'
   })
+
+  React.useEffect(() => {
+    console.log(
+      '%cApp: parentValue useEffect(() => {}, [parentValue])',
+      'color: LightCoral',
+    )
+
+    let timer
+    timer = setTimeout(() => {
+      console.log('%cApp: I am executed after 3 Seconds', 'color: LightCoral')
+    }, 3000)
+    //setParentValue('raichu')
+    return () => {
+      clearTimeout(timer)
+      console.log(
+        '%cApp: parentValue useEffect(() => {}, [parentValue]) cleanup 🧹',
+        'color: LightCoral',
+      )
+    }
+  }, [parentValue])
 
   React.useEffect(() => {
     console.log('%cApp: useEffect(() => {}, [])', 'color: MediumTurquoise')
@@ -80,6 +118,13 @@ function App() {
       )
     }
   }, [])
+
+  React.useEffect(() => {
+    console.log('%cApp: useEffect(() => {})', 'color: LightCoral')
+    return () => {
+      console.log('%cApp: useEffect(() => {}) cleanup 🧹', 'color: LightCoral')
+    }
+  })
 
   React.useEffect(() => {
     console.log('%cApp: useEffect(() => {}, [showChild])', 'color: HotPink')
@@ -101,6 +146,22 @@ function App() {
         />{' '}
         show child
       </label>
+      <label
+        style={{
+          marginLeft: 2,
+          border: '1px solid red',
+        }}
+      >
+        {parentValue}
+      </label>
+      <button
+        onClick={() => {
+          setParentValue('Charazard')
+          return
+        }}
+      >
+        Parent Change
+      </button>
       <div
         style={{
           padding: 10,
@@ -110,7 +171,9 @@ function App() {
           border: 'solid',
         }}
       >
-        {showChild ? <Child /> : null}
+        {showChild ? (
+          <Child parentValue={parentValue} setParentValue={setParentValue} />
+        ) : null}
       </div>
     </>
   )
